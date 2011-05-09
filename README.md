@@ -11,6 +11,49 @@ does not end up where you think it should in a time limit.
 
 Paddle was inspired by @mde's "You are fucked" section at his 2011 NodeConf talk.
 
+## Usage ##
+
+### Paddle Init ###
+
+ var paddle = new Paddle(freq) // freq is the # of seconds to check on timeouts
+
+### Methods ###
+
+`paddle.insure(error_callback, timeout, args, id)`:  
+Registers and returns and insurance object. `args` and `id` are optional.
+
+`paddle.check_in(id)`:  
+Confirm code execution and avoid the error_callback on insurance or id.
+
+`paddle.start()`:  
+Start checking for timed out insurances. (Started automatically).
+
+`paddle.stop()`:  
+Stop checking for timed out insurances.
+
+### Insurance Objects ###
+
+Insurance objects are returned when you call insure.
+ var insurance = paddle.insure(...)
+ 
+`insurance.id`: The id of that insure (unique within a paddle instance)
+`insurance.paddle`: The instance of Paddle
+`insurance.error_callback`: the function specified by insure
+`insurance.args`: the arguments for the `error_callback`
+`insurance.timeout`: The epoch time when this insurance is considered expired
+`insurance.done`: Boolean has this insurance been `check_in`'d
+
+`insurance.check_in()`: Delcare this insurance completed, avoiding the `error_callback`.
+
+### Events ###
+The Paddle instance is an EventEmitter, so `on()`, `once()` etc can be used to register event callbacks.
+
+`check_in`:  
+When an insurance is finished without timeout. The insurance obj is passed.
+
+`timeout`:  
+When an insurance has timed-out. The insurance obj is passed.
+
 ## Examples ##
 
 Node.js famously had an http client

@@ -29,6 +29,8 @@ var EventEmitter = require("events").EventEmitter;
  * Paddle, you can know. Paddle is a simple way of noting that your code should
  * reach one of several code-execution points within a timelimit. If the time-
  * limit is exceeded, an error callback is executed.
+ *
+ * @param freq: number of seconds between timeout checks
  */
 function Paddle(freq) {
     EventEmitter.call(this);
@@ -75,14 +77,14 @@ function insure(error_callback, timeout, args, id) {
     expiretime = Date.now() + timeout * 1000;
     var that = this;
     var insurance = {
-        creek: that,
+        paddle: that,
         error_callback: error_callback,
         args: args,
         id: id,
         timeout: expiretime,
         done: false,
         check_in: function() {
-            return this.creek.check_in(this.id);
+            return this.paddle.check_in(this.id);
         }
     }
     //this.registry[id] = [expiretime, error_callback, args];
@@ -129,19 +131,6 @@ function checkEnsures() {
 }
 
 /*
- * Stop checking Paddle timeouts.
- * @return bool: true if stopped, false if it was already stopped.
- */
-function stop() {
-    if(this.run) {
-        this.run = false;
-        return true;
-    } else {
-        return true;
-    }
-}
-
-/*
  * Start checking paddle timeouts. Optionally reset frequency.
  *
  * @return bool: true if running, false if it was already running.
@@ -156,6 +145,19 @@ function start(freq) {
         return true;
     } else {
         return false;
+    }
+}
+
+/*
+ * Stop checking Paddle timeouts.
+ * @return bool: true if stopped, false if it was already stopped.
+ */
+function stop() {
+    if(this.run) {
+        this.run = false;
+        return true;
+    } else {
+        return true;
     }
 }
 
