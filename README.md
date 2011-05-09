@@ -11,6 +11,9 @@ does not end up where you think it should in a time limit.
 
 Paddle was inspired by @mde's "You are fucked" section at his 2011 NodeConf talk.
 
+## Install ##
+ npm install paddle
+
 ## Usage ##
 
 ### Paddle Init ###
