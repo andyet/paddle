@@ -23,6 +23,13 @@
 
 var EventEmitter = require("events").EventEmitter;
 
+/**
+ * You're up a creek; here's your Paddle. In Javascript, we rely on callback
+ * execution, often times without knowing for sure that it will happen. With
+ * Paddle, you can know. Paddle is a simple way of noting that your code should
+ * reach one of several code-execution points within a timelimit. If the time-
+ * limit is exceeded, an error callback is executed.
+ */
 function Paddle(freq) {
     EventEmitter.call(this);
     this.registry = new Object();
@@ -32,7 +39,7 @@ function Paddle(freq) {
     } else {
         this.freq = freq;
     }
-    this.run = true;
+    this.run = false;
     this.start();
 }
 
@@ -45,6 +52,17 @@ Paddle.prototype = Object.create(EventEmitter.prototype, {
     }
 });
 
+/*
+ * Register a new check. If the check times out, error_callback will be called
+ * with the optionally specified args. You may specify an id, but one will be
+ * created otherwise.
+ *
+ * @param error_callback: function called when timeout is reached without check-in
+ * @param timeout: seconds to wait for check-in
+ * @param args: Array of arguments to call error_callback with
+ * @param id: optional -- ensure will generate one for you
+ * @return id: returns the id of the ensure you just created
+ */
 function ensure(error_callback, timeout, args, id) {
     if(id === undefined) {
         ++this.ensureids;
@@ -56,15 +74,25 @@ function ensure(error_callback, timeout, args, id) {
     return id;
 }
 
-function madeit(id) {
+/*
+ * Check in with an id to confirm that your end-execution point occurred. This
+ * will cancel the timeout error, and delete the entry for this id.
+ *
+ * @param id: id from ensure
+ */
+function check_in(id) {
     if(id in this.registry) {
-        this.emit('madeit', id);
+        this.emit('check_in', id);
         delete this.registry[id];
         return true;
     }
     return false;
 }
 
+/*
+ * Executed internally to occasionally make sure all paddle ids are within
+ * their timeouts.
+ */
 function checkEnsures() {
     var now = Date.now();
     for(var id in this.registry) {
@@ -79,17 +107,39 @@ function checkEnsures() {
     }
 }
 
+/*
+ * Stop checking Paddle timeouts.
+ * @return bool: true if stopped, false if it was already stopped.
+ */
 function stop() {
-    this.run = false;
+    if(this.run) {
+        this.run = false;
+        return true;
+    } else {
+        return true;
+    }
 }
 
-function start() {
-    this.run = true;
-    setTimeout(function() { this.checkEnsures() }.bind(this), this.freq * 1000);
+/*
+ * Start checking paddle timeouts. Optionally reset frequency.
+ *
+ * @return bool: true if running, false if it was already running.
+ */
+function start(freq) {
+    if(freq !== undefined) {
+        this.freq = freq;
+    }
+    if(!this.run) {
+        this.run = true;
+        setTimeout(function() { this.checkEnsures() }.bind(this), this.freq * 1000);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 Paddle.prototype.ensure = ensure;
-Paddle.prototype.madeit = madeit;
+Paddle.prototype.check_in = check_in;
 Paddle.prototype.checkEnsures = checkEnsures;
 Paddle.prototype.start = start;
 Paddle.prototype.stop = stop;
