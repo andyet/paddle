@@ -33,7 +33,7 @@ var EventEmitter = require("events").EventEmitter;
 function Paddle(freq) {
     EventEmitter.call(this);
     this.registry = new Object();
-    this.ensureids = 0;
+    this.insureids = 0;
     if(freq === undefined) {
         this.freq = 5;
     } else {
@@ -60,29 +60,50 @@ Paddle.prototype = Object.create(EventEmitter.prototype, {
  * @param error_callback: function called when timeout is reached without check-in
  * @param timeout: seconds to wait for check-in
  * @param args: Array of arguments to call error_callback with
- * @param id: optional -- ensure will generate one for you
- * @return id: returns the id of the ensure you just created
+ * @param id: optional -- insure will generate one for you
+ *
+ * @return Object: returns the insurance obj you just created
+ * {paddle, error_callback, args, id, timeout, done, check_in}
+ *
  */
-function ensure(error_callback, timeout, args, id) {
+function insure(error_callback, timeout, args, id) {
     if(id === undefined) {
-        ++this.ensureids;
-        this.ensureids %= 65000;
-        id = this.ensureids;
+        ++this.insureids;
+        this.insureids %= 65000;
+        id = this.insureids;
     }
-    expiretime = Date.now() + timeout;
-    this.registry[id] = [expiretime, error_callback, args];
-    return id;
+    expiretime = Date.now() + timeout * 1000;
+    var that = this;
+    var insurance = {
+        creek: that,
+        error_callback: error_callback,
+        args: args,
+        id: id,
+        timeout: expiretime,
+        done: false,
+        check_in: function() {
+            return this.creek.check_in(this.id);
+        }
+    }
+    //this.registry[id] = [expiretime, error_callback, args];
+    this.registry[id] = insurance;
+    return insurance;
 }
 
 /*
- * Check in with an id to confirm that your end-execution point occurred. This
+ * Check in with an id or paddle to confirm that your end-execution point occurred. This
  * will cancel the timeout error, and delete the entry for this id.
  *
- * @param id: id from ensure
+ * @param id or insurance: id from insure or insure obj
  */
 function check_in(id) {
+    if(id.id !== undefined) {
+        //perhaps this is an insure object
+        id = id.id;
+    }
     if(id in this.registry) {
-        this.emit('check_in', id);
+        this.emit('check_in', this.registry[id]);
+        this.registry[id].done = true;
         delete this.registry[id];
         return true;
     }
@@ -90,15 +111,15 @@ function check_in(id) {
 }
 
 /*
- * Executed internally to occasionally make sure all paddle ids are within
+ * Executed internally to occasionally make sure all insurance ids are within
  * their timeouts.
  */
 function checkEnsures() {
     var now = Date.now();
     for(var id in this.registry) {
-        if(now > this.registry[id][0]) {
-            this.registry[id][1].apply(this, this.registry[id][2]);
-            this.emit('timeout', id);
+        if(now > this.registry[id].timeout) {
+            this.registry[id].error_callback.apply(this, this.registry[id].args);
+            this.emit('timeout', this.registry[id]);
             delete this.registry[id];
         }
     }
@@ -138,7 +159,7 @@ function start(freq) {
     }
 }
 
-Paddle.prototype.ensure = ensure;
+Paddle.prototype.insure = insure;
 Paddle.prototype.check_in = check_in;
 Paddle.prototype.checkEnsures = checkEnsures;
 Paddle.prototype.start = start;
