@@ -1,9 +1,9 @@
 {
     "name": "paddle",
-    "version": "1.0.2",
+    "version": "1.0.0",
     "description": "You are up a creek; here is your paddle. Paddle provides a way ensuring that JS asynchronous callbacks are actually ran, or calls a provided error function upon timeout.",
     "keywords": ["flow-control", "flow", "control", "paddle", "ensure", "asynchronous"],
-    "homepage": "github.com/andyet/padlock",
+    "homepage": "github.com/andyet/paddle",
     "author": {"name": "Nathan Fritz", "email": "nathan@andyet.net", "url": "http://andyet.net/team/nathan"},
     "contributors": [],
     "main": "./paddle.js",
