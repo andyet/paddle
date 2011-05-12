@@ -9,7 +9,7 @@ limit is exceeded, an error callback is executed.
 Paddle is, simply, a way of creating an error_callback just in case your asynchronous code
 does not end up where you think it should in a time limit.
 
-Paddle was inspired by @mde's "You are fucked" section at his 2011 NodeConf talk.
+Paddle was inspired by Matthew Eernisse's (@mde) "You are fucked" section at his 2011 NodeConf talk.
 
 ## Install ##
  `npm install paddle`
@@ -61,7 +61,7 @@ When an insurance has timed-out. The insurance obj is passed.
 
 Node.js famously had an http client
 but where occasionally no callback would occur for an HTTP request if the response was too fast.
-If I wanted to ensure that my http client callback occurred, I would call `ensure` in Paddle and
+If I wanted to make sure my http client callback occurred, I would call `insure` in Paddle and
 `check_in` within the callback. As simple as that!
 
     var http = require('http'),
